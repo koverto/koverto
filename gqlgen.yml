@@ -1,0 +1,24 @@
+schema:
+  - api/koverto.graphql
+exec:
+  filename: api/schema.gql.go
+  package: koverto
+struct_tag: json
+model:
+  filename: api/models.gql.go
+  package: koverto
+models:
+  Bytes:
+    model: github.com/koverto/koverto/internal/pkg/bytes.Bytes
+  Credential:
+    model: github.com/koverto/credentials/api.Credential
+  CredentialType:
+    model: github.com/koverto/credentials/api.CredentialType
+  CredentialUpdate:
+    model: github.com/koverto/credentials/api.CredentialUpdate
+  ID:
+    model: github.com/koverto/uuid.UUID
+  UserInput:
+    model: github.com/koverto/users/api.User
+  User:
+    model: github.com/koverto/users/api.User

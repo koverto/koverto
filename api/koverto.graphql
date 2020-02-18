@@ -1,0 +1,53 @@
+directive @protected(authRequired: Boolean!) on FIELD_DEFINITION
+
+enum CredentialType {
+  NONE
+  PASSWORD
+}
+
+scalar Bytes
+scalar Time
+
+type Mutation {
+  # Authentication
+  createUser(input: Authentication!): LoginResponse!
+    @protected(authRequired: false)
+  login(input: Authentication!): LoginResponse! @protected(authRequired: false)
+
+  # User
+  updateUser(input: UserInput!): User! @protected(authRequired: true)
+}
+
+input Authentication {
+  credential: Credential!
+  user: UserInput
+}
+
+input Credential {
+  userID: ID
+  credentialType: CredentialType!
+  credential: Bytes!
+}
+
+input CredentialUpdate {
+  current: Credential!
+  new: Credential!
+}
+
+input UserInput {
+  name: String
+  email: String!
+}
+
+type LoginResponse {
+  token: String!
+  user: User!
+}
+
+type User {
+  id: ID!
+  name: String
+  email: String!
+  createdAt: Time!
+  updatedAt: Time!
+}
