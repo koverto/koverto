@@ -7,6 +7,10 @@ struct_tag: json
 model:
   filename: api/models.gql.go
   package: koverto
+resolver:
+  layout: follow-schema
+  dir: internal/pkg/resolver
+  package: resolver
 models:
   Bytes:
     model: github.com/koverto/koverto/internal/pkg/bytes.Bytes
