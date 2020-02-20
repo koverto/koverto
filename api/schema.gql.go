@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -40,6 +41,7 @@ type Config struct {
 
 type ResolverRoot interface {
 	Mutation() MutationResolver
+	Query() QueryResolver
 }
 
 type DirectiveRoot struct {
@@ -59,6 +61,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		GetUser func(childComplexity int) int
 	}
 
 	User struct {
@@ -74,6 +77,9 @@ type MutationResolver interface {
 	CreateUser(ctx context.Context, input Authentication) (*LoginResponse, error)
 	Login(ctx context.Context, input Authentication) (*LoginResponse, error)
 	UpdateUser(ctx context.Context, input users.User) (*users.User, error)
+}
+type QueryResolver interface {
+	GetUser(ctx context.Context) (*users.User, error)
 }
 
 type executableSchema struct {
@@ -140,6 +146,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateUser(childComplexity, args["input"].(users.User)), true
+
+	case "Query.getUser":
+		if e.complexity.Query.GetUser == nil {
+			break
+		}
+
+		return e.complexity.Query.GetUser(childComplexity), true
 
 	case "User.createdAt":
 		if e.complexity.User.CreatedAt == nil {
@@ -249,6 +262,10 @@ enum CredentialType {
 
 scalar Bytes
 scalar Time
+
+type Query {
+  getUser: User! @protected(authRequired: true)
+}
 
 type Mutation {
   # Authentication
@@ -631,6 +648,64 @@ func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field grap
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
 			return ec.resolvers.Mutation().UpdateUser(rctx, args["input"].(users.User))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			authRequired, err := ec.unmarshalNBoolean2bool(ctx, true)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Protected == nil {
+				return nil, errors.New("directive protected is not implemented")
+			}
+			return ec.directives.Protected(ctx, nil, directive0, authRequired)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*users.User); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/koverto/users/api.User`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*users.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋkovertoᚋusersᚋapiᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().GetUser(rctx)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			authRequired, err := ec.unmarshalNBoolean2bool(ctx, true)
@@ -2159,6 +2234,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "getUser":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUser(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":

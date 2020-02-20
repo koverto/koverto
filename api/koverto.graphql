@@ -8,6 +8,10 @@ enum CredentialType {
 scalar Bytes
 scalar Time
 
+type Query {
+  getUser: User! @protected(authRequired: true)
+}
+
 type Mutation {
   # Authentication
   createUser(input: Authentication!): LoginResponse!
