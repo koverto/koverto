@@ -11,7 +11,20 @@ import (
 )
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input koverto.Authentication) (*koverto.LoginResponse, error) {
-	panic(fmt.Errorf("not implemented"))
+	user, err := r.users.Create(ctx, input.User)
+	if err != nil {
+		return nil, err
+	}
+
+	input.Credential.UserID = user.GetId()
+	if _, err := r.credentials.Create(ctx, input.Credential); err != nil {
+		return nil, err
+	}
+
+	return &koverto.LoginResponse{
+		Token: "token goes here",
+		User:  user,
+	}, nil
 }
 
 func (r *mutationResolver) Login(ctx context.Context, input koverto.Authentication) (*koverto.LoginResponse, error) {
