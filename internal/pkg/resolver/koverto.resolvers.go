@@ -59,7 +59,27 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input koverto.Authent
 }
 
 func (r *mutationResolver) Login(ctx context.Context, input koverto.Authentication) (*koverto.LoginResponse, error) {
-	panic(fmt.Errorf("not implemented"))
+	user, err := r.users.Read(ctx, input.User)
+	if err != nil {
+		return nil, err
+	}
+
+	input.Credential.UserID = user.GetId()
+	if _, err := r.credentials.Validate(ctx, input.Credential); err != nil {
+		return nil, err
+	}
+
+	token, err := r.authz.Create(ctx, &authz.TokenRequest{
+		UserID: user.GetId(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &koverto.LoginResponse{
+		Token: token.GetToken(),
+		User:  user,
+	}, nil
 }
 
 func (r *mutationResolver) UpdateUser(ctx context.Context, input users.User) (*users.User, error) {
