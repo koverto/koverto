@@ -5,7 +5,9 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"sync"
 
+	authz "github.com/koverto/authorization/api"
 	koverto "github.com/koverto/koverto/api"
 	users "github.com/koverto/users/api"
 )
@@ -16,13 +18,42 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input koverto.Authent
 		return nil, err
 	}
 
-	input.Credential.UserID = user.GetId()
-	if _, err := r.credentials.Create(ctx, input.Credential); err != nil {
-		return nil, err
+	errCh := make(chan error, 2)
+	tokenCh := make(chan authz.Token, 1)
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		input.Credential.UserID = user.GetId()
+		_, err := r.credentials.Create(ctx, input.Credential)
+		errCh <- err
+	}()
+
+	go func() {
+		defer wg.Done()
+		token, err := r.authz.Create(ctx, &authz.TokenRequest{
+			UserID: user.GetId(),
+		})
+		errCh <- err
+		tokenCh <- *token
+	}()
+
+	wg.Wait()
+	close(errCh)
+	close(tokenCh)
+
+	for err = range errCh {
+		if err != nil {
+			return nil, err
+		}
 	}
 
+	token := <-tokenCh
+
 	return &koverto.LoginResponse{
-		Token: "token goes here",
+		Token: token.GetToken(),
 		User:  user,
 	}, nil
 }
