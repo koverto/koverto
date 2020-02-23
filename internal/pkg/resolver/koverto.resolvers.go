@@ -13,7 +13,7 @@ import (
 )
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input koverto.Authentication) (*koverto.LoginResponse, error) {
-	user, err := r.users.Create(ctx, input.User)
+	user, err := r.UsersService.Create(ctx, input.User)
 	if err != nil {
 		return nil, err
 	}
@@ -27,13 +27,13 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input koverto.Authent
 	go func() {
 		defer wg.Done()
 		input.Credential.UserID = user.GetId()
-		_, err := r.credentials.Create(ctx, input.Credential)
+		_, err := r.CredentialsService.Create(ctx, input.Credential)
 		errCh <- err
 	}()
 
 	go func() {
 		defer wg.Done()
-		token, err := r.authz.Create(ctx, &authz.TokenRequest{
+		token, err := r.AuthorizationService.Create(ctx, &authz.TokenRequest{
 			UserID: user.GetId(),
 		})
 		errCh <- err
@@ -59,17 +59,17 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input koverto.Authent
 }
 
 func (r *mutationResolver) Login(ctx context.Context, input koverto.Authentication) (*koverto.LoginResponse, error) {
-	user, err := r.users.Read(ctx, input.User)
+	user, err := r.UsersService.Read(ctx, input.User)
 	if err != nil {
 		return nil, err
 	}
 
 	input.Credential.UserID = user.GetId()
-	if _, err := r.credentials.Validate(ctx, input.Credential); err != nil {
+	if _, err := r.CredentialsService.Validate(ctx, input.Credential); err != nil {
 		return nil, err
 	}
 
-	token, err := r.authz.Create(ctx, &authz.TokenRequest{
+	token, err := r.AuthorizationService.Create(ctx, &authz.TokenRequest{
 		UserID: user.GetId(),
 	})
 	if err != nil {

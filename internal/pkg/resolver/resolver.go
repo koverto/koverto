@@ -5,7 +5,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/99designs/gqlgen/graphql"
 	authz "github.com/koverto/authorization/api"
@@ -16,9 +15,9 @@ import (
 )
 
 type Resolver struct {
-	authz       authz.AuthorizationService
-	credentials credentials.CredentialsService
-	users       users.UsersService
+	authz.AuthorizationService
+	credentials.CredentialsService
+	users.UsersService
 }
 
 func New() koverto.Config {
@@ -42,5 +41,6 @@ func New() koverto.Config {
 }
 
 func protectedFieldDirective(ctx context.Context, _ interface{}, next graphql.Resolver, authRequired bool) (interface{}, error) {
-	panic(fmt.Errorf("not implemented"))
+	return next(ctx)
+	// panic(fmt.Errorf("not implemented"))
 }
