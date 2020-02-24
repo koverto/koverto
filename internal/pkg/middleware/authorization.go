@@ -20,6 +20,7 @@ type authorizationHandler struct {
 
 func AuthorizationHandler(r *resolver.Resolver) func(http.Handler) http.Handler {
 	bearerExpression, _ := regexp.Compile(`Bearer (\S+)`)
+
 	return func(next http.Handler) http.Handler {
 		return &authorizationHandler{
 			Resolver:         r,
