@@ -85,7 +85,13 @@ func (r *mutationResolver) Login(ctx context.Context, input koverto.Authenticati
 }
 
 func (r *mutationResolver) UpdateUser(ctx context.Context, input users.User) (*users.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	uid, ok := ctx.Value(claims.ContextKeyUID{}).(*uuid.UUID)
+	if !ok {
+		return nil, fmt.Errorf("no user ID")
+	}
+
+	input.Id = uid
+	return r.UsersService.Update(ctx, &input)
 }
 
 func (r *queryResolver) GetUser(ctx context.Context) (*users.User, error) {
