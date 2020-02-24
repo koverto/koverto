@@ -10,8 +10,8 @@ import (
 	authz "github.com/koverto/authorization/api"
 	credentials "github.com/koverto/credentials/api"
 	koverto "github.com/koverto/koverto/api"
+	"github.com/koverto/micro"
 	users "github.com/koverto/users/api"
-	"github.com/micro/go-micro/v2"
 )
 
 type Resolver struct {
@@ -20,15 +20,17 @@ type Resolver struct {
 	users.UsersService
 }
 
-func New() koverto.Config {
-	service := micro.NewService(micro.Name("koverto"))
-	service.Init()
+func New() (*koverto.Config, error) {
+	service, err := micro.NewService("com.koverto.svc.koverto", nil)
+	if err != nil {
+		return nil, err
+	}
 
 	authz := authz.NewAuthorizationService("authorization", service.Client())
 	credentials := credentials.NewCredentialsService("credentials", service.Client())
 	users := users.NewUsersService("users", service.Client())
 
-	return koverto.Config{
+	return &koverto.Config{
 		Resolvers: &Resolver{
 			authz,
 			credentials,
@@ -37,7 +39,7 @@ func New() koverto.Config {
 		Directives: koverto.DirectiveRoot{
 			Protected: protectedFieldDirective,
 		},
-	}
+	}, nil
 }
 
 func protectedFieldDirective(ctx context.Context, _ interface{}, next graphql.Resolver, authRequired bool) (interface{}, error) {

@@ -15,12 +15,15 @@ import (
 )
 
 func main() {
-	res := resolver.New()
+	res, err := resolver.New()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	router := httprouter.New()
 	router.Handler("GET", "/", playground.Handler("Playground", "/query"))
 
-	gqlHandler := handler.NewDefaultServer(koverto.NewExecutableSchema(res))
+	gqlHandler := handler.NewDefaultServer(koverto.NewExecutableSchema(*res))
 	router.Handler("POST", "/query", gqlHandler)
 
 	chain := alice.New(

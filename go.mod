@@ -8,8 +8,8 @@ require (
 	github.com/justinas/alice v1.2.0
 	github.com/koverto/authorization v1.2.0
 	github.com/koverto/credentials v0.2.3
+	github.com/koverto/micro v1.0.0
 	github.com/koverto/users v0.1.2
 	github.com/koverto/uuid v1.2.1
-	github.com/micro/go-micro/v2 v2.1.1
 	github.com/vektah/gqlparser/v2 v2.0.1
 )
