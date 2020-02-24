@@ -8,8 +8,10 @@ import (
 	"sync"
 
 	authz "github.com/koverto/authorization/api"
+	"github.com/koverto/authorization/pkg/claims"
 	koverto "github.com/koverto/koverto/api"
 	users "github.com/koverto/users/api"
+	"github.com/koverto/uuid"
 )
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input koverto.Authentication) (*koverto.LoginResponse, error) {
@@ -87,7 +89,14 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input users.User) (*u
 }
 
 func (r *queryResolver) GetUser(ctx context.Context) (*users.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	uid, ok := ctx.Value(claims.ContextKeyUID{}).(*uuid.UUID)
+	if !ok {
+		return nil, fmt.Errorf("no user ID")
+	}
+
+	return r.UsersService.Read(ctx, &users.User{
+		Id: uid,
+	})
 }
 
 func (r *Resolver) Mutation() koverto.MutationResolver { return &mutationResolver{r} }
