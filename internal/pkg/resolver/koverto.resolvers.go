@@ -61,14 +61,16 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input koverto.Authent
 }
 
 func (r *mutationResolver) Login(ctx context.Context, input koverto.Authentication) (*koverto.LoginResponse, error) {
+	loginFailed := fmt.Errorf("invalid e-mail address or password")
+
 	user, err := r.UsersService.Read(ctx, input.User)
 	if err != nil {
-		return nil, err
+		return nil, loginFailed
 	}
 
 	input.Credential.UserID = user.GetId()
 	if _, err := r.CredentialsService.Validate(ctx, input.Credential); err != nil {
-		return nil, err
+		return nil, loginFailed
 	}
 
 	token, err := r.AuthorizationService.Create(ctx, &authz.TokenRequest{
