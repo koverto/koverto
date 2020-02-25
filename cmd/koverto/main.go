@@ -15,6 +15,11 @@ import (
 	"github.com/justinas/alice"
 )
 
+const (
+	defaultTLSCert = "localhost+2.pem"
+	defaultTLSKey  = "localhost+2-key.pem"
+)
+
 func main() {
 	res, err := resolver.New()
 	if err != nil {
@@ -37,5 +42,6 @@ func main() {
 		middleware.AuthorizationHandler(res.Resolvers.(*resolver.Resolver)),
 		cors.New(corsOptions).Handler,
 	).Then(router)
-	log.Fatal(http.ListenAndServe(":8080", chain))
+
+	log.Fatal(http.ListenAndServeTLS(":8080", defaultTLSCert, defaultTLSKey, chain))
 }
