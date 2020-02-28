@@ -53,5 +53,5 @@ type User {
   name: String
   email: String!
   createdAt: Time!
-  updatedAt: Time!
+  updatedAt: Time
 }
