@@ -7,12 +7,12 @@ import (
 	koverto "github.com/koverto/koverto/api"
 	"github.com/koverto/koverto/internal/pkg/middleware"
 	"github.com/koverto/koverto/internal/pkg/resolver"
-	"github.com/rs/cors"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
+	"github.com/rs/cors"
 )
 
 const (
@@ -35,12 +35,13 @@ func main() {
 	corsOptions := cors.Options{
 		AllowedHeaders: []string{"Authorization", "Content-Type"},
 		AllowedMethods: []string{"GET", "OPTIONS", "POST"},
-		AllowedOrigins: []string{"https://localhost:9000"},
+		AllowedOrigins: []string{"https://localhost:8080", "https://localhost:9000"},
 	}
 
+	c := cors.New(corsOptions)
 	chain := alice.New(
+		c.Handler,
 		middleware.AuthorizationHandler(res.Resolvers.(*resolver.Resolver)),
-		cors.New(corsOptions).Handler,
 	).Then(router)
 
 	log.Fatal(http.ListenAndServeTLS(":8080", defaultTLSCert, defaultTLSKey, chain))
