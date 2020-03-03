@@ -35,8 +35,8 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input koverto.Authent
 
 	go func() {
 		defer wg.Done()
-		token, err := r.AuthorizationService.Create(ctx, &authz.TokenRequest{
-			UserID: user.GetId(),
+		token, err := r.AuthorizationService.Create(ctx, &authz.Claims{
+			Subject: user.GetId(),
 		})
 		errCh <- err
 		tokenCh <- *token
@@ -73,8 +73,8 @@ func (r *mutationResolver) Login(ctx context.Context, input koverto.Authenticati
 		return nil, loginFailed
 	}
 
-	token, err := r.AuthorizationService.Create(ctx, &authz.TokenRequest{
-		UserID: user.GetId(),
+	token, err := r.AuthorizationService.Create(ctx, &authz.Claims{
+		Subject: user.GetId(),
 	})
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func (r *mutationResolver) Login(ctx context.Context, input koverto.Authenticati
 }
 
 func (r *mutationResolver) UpdateUser(ctx context.Context, input users.User) (*users.User, error) {
-	uid, ok := ctx.Value(claims.ContextKeyUID{}).(*uuid.UUID)
+	uid, ok := ctx.Value(claims.ContextKeySUB{}).(*uuid.UUID)
 	if !ok {
 		return nil, fmt.Errorf("no user ID")
 	}
@@ -97,7 +97,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input users.User) (*u
 }
 
 func (r *queryResolver) GetUser(ctx context.Context) (*users.User, error) {
-	uid, ok := ctx.Value(claims.ContextKeyUID{}).(*uuid.UUID)
+	uid, ok := ctx.Value(claims.ContextKeySUB{}).(*uuid.UUID)
 	if !ok {
 		return nil, fmt.Errorf("no user ID")
 	}

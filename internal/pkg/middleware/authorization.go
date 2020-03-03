@@ -37,7 +37,9 @@ func (h *authorizationHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request
 		token := &authorization.Token{Token: matches[1]}
 
 		if response, err := h.AuthorizationService.Validate(r.Context(), token); err == nil {
-			ctx := context.WithValue(r.Context(), claims.ContextKeyUID{}, response.GetUserID())
+			ctx := context.WithValue(r.Context(), claims.ContextKeyJTI{}, response.GetID())
+			ctx = context.WithValue(ctx, claims.ContextKeySUB{}, response.GetSubject())
+			ctx = context.WithValue(ctx, claims.ContextKeyEXP{}, response.GetExpiresAt())
 			r = r.WithContext(ctx)
 		}
 	}
