@@ -17,6 +17,7 @@ type Mutation {
   createUser(input: Authentication!): LoginResponse!
     @protected(authRequired: false)
   login(input: Authentication!): LoginResponse! @protected(authRequired: false)
+  logout: LogoutResponse!
 
   # User
   updateUser(input: UserInput!): User! @protected(authRequired: true)
@@ -46,6 +47,10 @@ input UserInput {
 type LoginResponse {
   token: String!
   user: User!
+}
+
+type LogoutResponse {
+  ok: Boolean!
 }
 
 type User {

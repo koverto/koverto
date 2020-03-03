@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	authz "github.com/koverto/authorization/api"
 	"github.com/koverto/authorization/pkg/claims"
@@ -84,6 +85,23 @@ func (r *mutationResolver) Login(ctx context.Context, input koverto.Authenticati
 		Token: token.GetToken(),
 		User:  user,
 	}, nil
+}
+
+func (r *mutationResolver) Logout(ctx context.Context) (*koverto.LogoutResponse, error) {
+	jti, ok := ctx.Value(claims.ContextKeyJTI{}).(*uuid.UUID)
+	if !ok {
+		return nil, fmt.Errorf("no token ID")
+	}
+
+	exp, ok := ctx.Value(claims.ContextKeyEXP{}).(*time.Time)
+	if !ok {
+		return nil, fmt.Errorf("no token expiry")
+	}
+
+	claims := &authz.Claims{ID: jti, ExpiresAt: exp}
+	_, err := r.AuthorizationService.Invalidate(ctx, claims)
+
+	return &koverto.LogoutResponse{Ok: err == nil}, err
 }
 
 func (r *mutationResolver) UpdateUser(ctx context.Context, input users.User) (*users.User, error) {

@@ -16,3 +16,7 @@ type LoginResponse struct {
 	Token string      `json:"token"`
 	User  *users.User `json:"user"`
 }
+
+type LogoutResponse struct {
+	Ok bool `json:"ok"`
+}
