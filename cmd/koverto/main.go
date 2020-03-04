@@ -41,6 +41,7 @@ func main() {
 	c := cors.New(corsOptions)
 	chain := alice.New(
 		c.Handler,
+		middleware.RequestIDHandler,
 		middleware.AuthorizationHandler(res.Resolvers.(*resolver.Resolver)),
 	).Then(router)
 

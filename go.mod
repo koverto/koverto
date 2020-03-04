@@ -8,9 +8,9 @@ require (
 	github.com/justinas/alice v1.2.0
 	github.com/koverto/authorization v1.3.0
 	github.com/koverto/credentials v0.2.3
-	github.com/koverto/micro v1.0.1
+	github.com/koverto/micro v1.1.0
 	github.com/koverto/users v0.1.2
-	github.com/koverto/uuid v1.2.1
+	github.com/koverto/uuid v1.3.0
 	github.com/rs/cors v1.7.0
 	github.com/vektah/gqlparser/v2 v2.0.1
 )
