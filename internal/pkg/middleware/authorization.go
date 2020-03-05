@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/koverto/koverto/internal/pkg/resolver"
+
 	authorization "github.com/koverto/authorization/api"
 	"github.com/koverto/authorization/pkg/claims"
-	"github.com/koverto/koverto/internal/pkg/resolver"
 )
 
 const AUTHORIZATION_HEADER = "Authorization"
