@@ -38,10 +38,10 @@ func main() {
 		AllowedOrigins: []string{"https://localhost:8080", "https://localhost:9000"},
 	}
 
-	c := cors.New(corsOptions)
 	chain := alice.New(
-		c.Handler,
+		cors.New(corsOptions).Handler,
 		middleware.RequestIDHandler,
+		middleware.LogHandler,
 		middleware.AuthorizationHandler(res.Resolvers.(*resolver.Resolver)),
 	).Then(router)
 
