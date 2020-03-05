@@ -3,7 +3,7 @@ module github.com/koverto/koverto
 go 1.14
 
 require (
-	github.com/99designs/gqlgen v0.11.1
+	github.com/99designs/gqlgen v0.11.2
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/justinas/alice v1.2.0
 	github.com/koverto/authorization v1.4.0
