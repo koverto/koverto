@@ -1,6 +1,7 @@
+package resolver
+
 // This file will be automatically regenerated based on the schema, any resolver implementations
 // will be copied through when generating and any unknown code will be moved to the end.
-package resolver
 
 import (
 	"context"
@@ -125,8 +126,11 @@ func (r *queryResolver) GetUser(ctx context.Context) (*users.User, error) {
 	})
 }
 
+// Mutation returns koverto.MutationResolver implementation.
 func (r *Resolver) Mutation() koverto.MutationResolver { return &mutationResolver{r} }
-func (r *Resolver) Query() koverto.QueryResolver       { return &queryResolver{r} }
+
+// Query returns koverto.QueryResolver implementation.
+func (r *Resolver) Query() koverto.QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
