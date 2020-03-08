@@ -1,6 +1,7 @@
 # Koverto
 
 [![Go](https://github.com/koverto/koverto/workflows/Go/badge.svg)][workflow]
+[![Go Report Card](https://goreportcard.com/badge/github.com/koverto/koverto)](https://goreportcard.com/report/github.com/koverto/koverto)
 
 ## Requirements
 
