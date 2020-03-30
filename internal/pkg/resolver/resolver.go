@@ -1,6 +1,5 @@
-// This file will not be regenerated automatically.
-//
-// It serves as dependency injection for your app, add any dependencies you require here.
+// Package resolver defines resolvers for GraphQL requests defined by the
+// schema.
 package resolver
 
 import (
@@ -17,12 +16,14 @@ import (
 	"github.com/koverto/uuid"
 )
 
+// Resolver defines a new set of GraphQL resolvers.
 type Resolver struct {
 	authz.AuthorizationService
 	credentials.CredentialsService
 	users.UsersService
 }
 
+// New initializes a koverto.Config GraphQL service containing a Resolver.
 func New() (*koverto.Config, error) {
 	service, err := micro.NewService("com.koverto.svc.koverto", nil)
 	if err != nil {

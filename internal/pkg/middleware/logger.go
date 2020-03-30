@@ -13,6 +13,7 @@ type logHandler struct {
 	http.Handler
 }
 
+// LogHandler logs incoming HTTP requests.
 func LogHandler(next http.Handler) http.Handler {
 	return &logHandler{next}
 }
@@ -59,6 +60,7 @@ func (rw *logResponseWriter) Write(b []byte) (int, error) {
 
 	size, err := rw.ResponseWriter.Write(b)
 	rw.Size += size
+
 	return size, err
 }
 

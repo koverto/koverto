@@ -1,3 +1,5 @@
+// Package middleware defines middleware utilities for the user-facing GraphQL
+// entrypoint.
 package middleware
 
 import (
@@ -11,7 +13,9 @@ import (
 	"github.com/koverto/authorization/pkg/claims"
 )
 
-const AUTHORIZATION_HEADER = "Authorization"
+const authorizationHeader = "Authorization"
+const bearerMatchLen = 2
+const bearerPattern = `^Bearer (\S+)$`
 
 type authorizationHandler struct {
 	*resolver.Resolver
@@ -19,8 +23,10 @@ type authorizationHandler struct {
 	bearerExpression *regexp.Regexp
 }
 
+// AuthorizationHandler extracts and requests validation of a JWT present in the
+// Authorization header of incoming HTTP requests.
 func AuthorizationHandler(r *resolver.Resolver) func(http.Handler) http.Handler {
-	bearerExpression, _ := regexp.Compile(`Bearer (\S+)`)
+	bearerExpression := regexp.MustCompile(bearerPattern)
 
 	return func(next http.Handler) http.Handler {
 		return &authorizationHandler{
@@ -32,9 +38,9 @@ func AuthorizationHandler(r *resolver.Resolver) func(http.Handler) http.Handler 
 }
 
 func (h *authorizationHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	bearer := r.Header.Get(AUTHORIZATION_HEADER)
+	bearer := r.Header.Get(authorizationHeader)
 
-	if matches := h.bearerExpression.FindStringSubmatch(bearer); len(matches) == 2 {
+	if matches := h.bearerExpression.FindStringSubmatch(bearer); len(matches) == bearerMatchLen {
 		token := &authorization.Token{Token: matches[1]}
 
 		if response, err := h.AuthorizationService.Validate(r.Context(), token); err == nil {
