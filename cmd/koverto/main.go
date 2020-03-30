@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	koverto "github.com/koverto/koverto/api"
@@ -13,6 +12,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
 	"github.com/rs/cors"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -23,7 +23,7 @@ const (
 func main() {
 	res, err := resolver.New()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().AnErr("error", err).Msg("could not initialize resolver")
 	}
 
 	router := httprouter.New()
@@ -45,5 +45,10 @@ func main() {
 		middleware.AuthorizationHandler(res.Resolvers.(*resolver.Resolver)),
 	).Then(router)
 
-	log.Fatal(http.ListenAndServeTLS(":8080", defaultTLSCert, defaultTLSKey, chain))
+	log.Fatal().AnErr("error", http.ListenAndServeTLS(
+		":8080",
+		defaultTLSCert,
+		defaultTLSKey,
+		chain,
+	)).Msg("error serving over HTTP with TLS")
 }
