@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	koverto "github.com/koverto/koverto/api"
+	"github.com/koverto/koverto/internal/pkg/health"
 	"github.com/koverto/koverto/internal/pkg/middleware"
 	"github.com/koverto/koverto/internal/pkg/resolver"
 
@@ -31,6 +32,9 @@ func main() {
 
 	gqlHandler := handler.NewDefaultServer(koverto.NewExecutableSchema(*res))
 	router.Handler("POST", "/query", gqlHandler)
+
+	healthHandler := health.NewHandler(res.Resolvers.(*resolver.Resolver))
+	router.Handler("GET", "/health", healthHandler)
 
 	corsOptions := cors.Options{
 		AllowedHeaders: []string{"Authorization", "Content-Type"},
