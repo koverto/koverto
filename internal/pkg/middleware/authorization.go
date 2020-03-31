@@ -43,7 +43,7 @@ func (h *authorizationHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request
 	if matches := h.bearerExpression.FindStringSubmatch(bearer); len(matches) == bearerMatchLen {
 		token := &authorization.Token{Token: matches[1]}
 
-		if response, err := h.AuthorizationService.Validate(r.Context(), token); err == nil {
+		if response, err := h.AuthorizationService().Validate(r.Context(), token); err == nil {
 			ctx := context.WithValue(r.Context(), claims.ContextKeyJTI{}, response.GetID())
 			ctx = context.WithValue(ctx, claims.ContextKeySUB{}, response.GetSubject())
 			ctx = context.WithValue(ctx, claims.ContextKeyEXP{}, response.GetExpiresAt())

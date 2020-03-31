@@ -6,21 +6,21 @@ import (
 	"context"
 	"fmt"
 
+	koverto "github.com/koverto/koverto/api"
+
 	"github.com/99designs/gqlgen/graphql"
 	authz "github.com/koverto/authorization/api"
 	"github.com/koverto/authorization/pkg/claims"
 	credentials "github.com/koverto/credentials/api"
-	koverto "github.com/koverto/koverto/api"
-	"github.com/koverto/micro"
+	"github.com/koverto/micro/v2"
 	users "github.com/koverto/users/api"
 	"github.com/koverto/uuid"
 )
 
 // Resolver defines a new set of GraphQL resolvers.
 type Resolver struct {
-	authz.AuthorizationService
-	credentials.CredentialsService
-	users.UsersService
+	*micro.Service
+	*micro.ClientSet
 }
 
 // New initializes a koverto.Config GraphQL service containing a Resolver.
@@ -30,15 +30,15 @@ func New() (*koverto.Config, error) {
 		return nil, err
 	}
 
-	authz := authz.NewAuthorizationService("authorization", service.Client())
-	credentials := credentials.NewCredentialsService("credentials", service.Client())
-	users := users.NewUsersService("users", service.Client())
+	clients := &micro.ClientSet{}
+	clients.AddClient(authz.NewClient(service.Client()))
+	clients.AddClient(credentials.NewClient(service.Client()))
+	clients.AddClient(users.NewClient(service.Client()))
 
 	return &koverto.Config{
 		Resolvers: &Resolver{
-			authz,
-			credentials,
-			users,
+			service,
+			clients,
 		},
 		Directives: koverto.DirectiveRoot{
 			Protected: protectedFieldDirective,
@@ -46,7 +46,29 @@ func New() (*koverto.Config, error) {
 	}, nil
 }
 
-func protectedFieldDirective(ctx context.Context, _ interface{}, next graphql.Resolver, authRequired bool) (interface{}, error) {
+// AuthorizationService returns the authorization service client belonging to
+// the Resolver.
+func (r *Resolver) AuthorizationService() authz.AuthorizationService {
+	return r.ClientSet.Get(authz.Name).(authz.AuthorizationService)
+}
+
+// CredentialsService returns the credentials service client belonging to the
+// Resolver.
+func (r *Resolver) CredentialsService() credentials.CredentialsService {
+	return r.ClientSet.Get(credentials.Name).(credentials.CredentialsService)
+}
+
+// UsersService returns the users service client belonging to the Resolver.
+func (r *Resolver) UsersService() users.UsersService {
+	return r.ClientSet.Get(users.Name).(users.UsersService)
+}
+
+func protectedFieldDirective(
+	ctx context.Context,
+	_ interface{},
+	next graphql.Resolver,
+	authRequired bool,
+) (interface{}, error) {
 	_, ok := ctx.Value(claims.ContextKeyJTI{}).(*uuid.UUID)
 
 	if ok && !authRequired {

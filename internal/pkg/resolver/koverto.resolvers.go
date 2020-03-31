@@ -16,33 +16,44 @@ import (
 	"github.com/koverto/uuid"
 )
 
-func (r *mutationResolver) CreateUser(ctx context.Context, input koverto.Authentication) (*koverto.LoginResponse, error) {
-	user, err := r.UsersService.Create(ctx, input.User)
+func (r *mutationResolver) CreateUser(
+	ctx context.Context,
+	input koverto.Authentication,
+) (*koverto.LoginResponse, error) {
+	user, err := r.UsersService().Create(ctx, input.User)
 	if err != nil {
 		return nil, err
 	}
 
-	errCh := make(chan error, 2)
+	errCh := make(chan error)
 	tokenCh := make(chan authz.Token, 1)
 
 	wg := sync.WaitGroup{}
-	wg.Add(2)
+	wgFns := make([]func(), 0)
 
-	go func() {
+	wgFns = append(wgFns, func() {
 		defer wg.Done()
+
 		input.Credential.UserID = user.GetId()
-		_, err := r.CredentialsService.Create(ctx, input.Credential)
+		_, err := r.CredentialsService().Create(ctx, input.Credential)
 		errCh <- err
-	}()
+	})
 
-	go func() {
+	wgFns = append(wgFns, func() {
 		defer wg.Done()
-		token, err := r.AuthorizationService.Create(ctx, &authz.Claims{
+
+		token, err := r.AuthorizationService().Create(ctx, &authz.Claims{
 			Subject: user.GetId(),
 		})
 		errCh <- err
 		tokenCh <- *token
-	}()
+	})
+
+	wg.Add(len(wgFns))
+
+	for _, fn := range wgFns {
+		go fn()
+	}
 
 	wg.Wait()
 	close(errCh)
@@ -65,17 +76,17 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input koverto.Authent
 func (r *mutationResolver) Login(ctx context.Context, input koverto.Authentication) (*koverto.LoginResponse, error) {
 	loginFailed := fmt.Errorf("invalid e-mail address or password")
 
-	user, err := r.UsersService.Read(ctx, input.User)
+	user, err := r.UsersService().Read(ctx, input.User)
 	if err != nil {
 		return nil, loginFailed
 	}
 
 	input.Credential.UserID = user.GetId()
-	if _, err := r.CredentialsService.Validate(ctx, input.Credential); err != nil {
+	if _, err := r.CredentialsService().Validate(ctx, input.Credential); err != nil {
 		return nil, loginFailed
 	}
 
-	token, err := r.AuthorizationService.Create(ctx, &authz.Claims{
+	token, err := r.AuthorizationService().Create(ctx, &authz.Claims{
 		Subject: user.GetId(),
 	})
 	if err != nil {
@@ -100,7 +111,7 @@ func (r *mutationResolver) Logout(ctx context.Context) (*koverto.LogoutResponse,
 	}
 
 	claims := &authz.Claims{ID: jti, ExpiresAt: exp}
-	_, err := r.AuthorizationService.Invalidate(ctx, claims)
+	_, err := r.AuthorizationService().Invalidate(ctx, claims)
 
 	return &koverto.LogoutResponse{Ok: err == nil}, err
 }
@@ -112,7 +123,8 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input users.User) (*u
 	}
 
 	input.Id = uid
-	return r.UsersService.Update(ctx, &input)
+
+	return r.UsersService().Update(ctx, &input)
 }
 
 func (r *queryResolver) GetUser(ctx context.Context) (*users.User, error) {
@@ -121,7 +133,7 @@ func (r *queryResolver) GetUser(ctx context.Context) (*users.User, error) {
 		return nil, fmt.Errorf("no user ID")
 	}
 
-	return r.UsersService.Read(ctx, &users.User{
+	return r.UsersService().Read(ctx, &users.User{
 		Id: uid,
 	})
 }

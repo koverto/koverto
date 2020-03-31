@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/koverto/micro"
+	"github.com/koverto/micro/v2"
 	"github.com/rs/zerolog/log"
 )
 

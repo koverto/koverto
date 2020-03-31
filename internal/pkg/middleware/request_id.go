@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/koverto/micro"
+	"github.com/koverto/micro/v2"
 	"github.com/koverto/uuid"
 )
 
