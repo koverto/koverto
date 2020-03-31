@@ -16,10 +16,7 @@ import (
 	"github.com/koverto/uuid"
 )
 
-func (r *mutationResolver) CreateUser(
-	ctx context.Context,
-	input koverto.Authentication,
-) (*koverto.LoginResponse, error) {
+func (r *mutationResolver) CreateUser(ctx context.Context, input koverto.Authentication) (*koverto.LoginResponse, error) {
 	user, err := r.UsersService().Create(ctx, input.User)
 	if err != nil {
 		return nil, err

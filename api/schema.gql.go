@@ -273,7 +273,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	&ast.Source{Name: "api/koverto.graphql", Input: `directive @protected(authRequired: Boolean!) on FIELD_DEFINITION
+	{Name: "api/koverto.graphql", Input: `directive @protected(authRequired: Boolean!) on FIELD_DEFINITION
 
 enum CredentialType {
   NONE
