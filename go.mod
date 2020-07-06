@@ -11,7 +11,7 @@ require (
 	github.com/koverto/micro/v2 v2.0.1
 	github.com/koverto/users v1.0.2
 	github.com/koverto/uuid v1.3.0
-	github.com/micro/go-micro/v2 v2.4.0
+	github.com/micro/go-micro/v2 v2.9.1
 	github.com/rs/cors v1.7.0
 	github.com/rs/zerolog v1.18.0
 	github.com/vektah/gqlparser/v2 v2.0.1
