@@ -14,5 +14,5 @@ require (
 	github.com/micro/go-micro/v2 v2.4.0
 	github.com/rs/cors v1.7.0
 	github.com/rs/zerolog v1.18.0
-	github.com/vektah/gqlparser/v2 v2.0.1
+	github.com/vektah/gqlparser/v2 v2.1.0
 )
